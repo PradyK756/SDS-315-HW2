@@ -131,7 +131,7 @@ Each smaller graph displays the boardings per hour by each Fahrenheit temperatur
 ```{r 4.1, echo=FALSE}
 billboard |>
   group_by(performer, song) |>
-  summarize(count = n()) |>
+  summarize(count = n(), .groups = "drop_last") |>
   arrange(desc(count)) |>
   head(10)
 ```
@@ -147,7 +147,7 @@ billboard |>
   summarize(count = n(), .groups = "drop_last") |>
   arrange(year) |>
   group_by(year) |>
-  summarize(count = n()) |>
+  summarize(count = n(), .groups = "drop_last") |>
   ggplot() + geom_line(aes(x = year, y = count)) + labs(title = "Number of Songs Appearing in Top 100 per Year", x = "Year", y = "Count")
   
   
