@@ -1,0 +1,171 @@
+---
+title: "SDS315 Homework 2 Report"
+author: "Prady Kandi, EID: prk599"
+date: "2025-01-28"
+output:
+  pdf_document:
+    toc: true
+urlcolor: blue
+---
+
+The link to the Github repo containing the R file can be found [here](https://github.com/PradyK756/SDS-315-HW2).
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r imports, echo=FALSE}
+profs <- read.csv("profs.csv")
+profs_graph <- ggplot(profs)
+bikes <- read.csv("bikeshare.csv")
+bikes_graph <- ggplot(bikes)
+metro <- read.csv("capmetro_UT.csv")
+billboard <- read.csv("billboard.csv")
+board_graph <- ggplot(billboard)
+```
+
+# Problem 1
+
+
+## Part A
+```{r 1.1, echo=FALSE}
+profs_graph + geom_histogram(aes(x = eval), bins= 25) + labs(title = "Distribution of Professor Evaluations", x= "Evaluation Score", y = "Amount")
+```
+This histogram shows that course evaluation scores follow a roughly binomial distribution, with the histogram being left-skewed. The average course evaluation score appears to be around 4, with the most common scores being 3.8 and 4.3.
+
+## Part B
+```{r 1.2, echo=FALSE}
+
+ggplot(profs) + geom_boxplot(aes(x = eval)) + facet_wrap(~native, labeller = labeller(native = c('no'= "Non-Native", 'yes' = "Native"))) + labs(title = "Evaluation Distribution Sorted by if English is Professor's Native Language", x = "Score") + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+```
+Native English speakers have a higher average score at 4.0, while non-native speakers have a lower average score around 3.6. This is likely indicitave of either inherent bias among students or widespread difficulty in understanding non-native English speakers.
+
+## Part C
+```{r fig.width =6, fig.width = 10, 1.3, , echo=FALSE}
+ggplot(profs) + geom_histogram(aes(x = eval),bins = 25) + facet_wrap(~gender, nrow =2 , ncol = 1, 
+  labeller = labeller(gender = c('female'= "Female", 'male' = "Male"))) + 
+  labs(title = "Evaluation Distribution by Gender", x = "Score", y = "Amount")
+```
+Female professors have a more uniform distribution than male professors, with around the same average score. However, male professors appear to have more extreme scores, both at the high and low end.
+
+## Part D
+```{r 1.4, echo=FALSE}
+ggplot(profs) + geom_point(aes(x = beauty, y = eval)) + labs(title = "Contrasting Evaluation Score by Professor Attractiveness ", x = "Beauty Score", y = "Course Score")
+```
+An association is not immediately clear, but rather, a professor's beauty score seems to serve as a limiter, with professors in certain ranges of beauty being limited to certain scores. With this information, it can be deducted there is a slight correlation, although the majority of a professor's score is not determined by their beauty.
+
+# Problem 2
+
+## Part A
+```{r 2.1, echo=FALSE}
+
+bikes |> 
+  group_by(hr) |>
+  summarize(avg = mean(total)) |>
+  ggplot() + geom_line(aes(x = hr, avg)) + labs("Average Bike Rentals per Hour", x = "Hour", y = "Bike Rentals")
+
+```
+The hour axis represents each individual hour during the day, ranging from 0-23, with the 0 hour representing the time period 12-1 AM. The Bike Rentals axis displays the amount of rentals during each hour's time frame. Bike rentals are very low during the night hours, until a gradual rise with a peak during the 8th hour and another peak during the 17th hour, with continued high use throughout midday. This indicates that most bikes rentals occur between 8-9 AM and 5-6 AM, which is a logical assumption as this is when the most people are commuting to and from work. General activity during the middle of the day is also expected, as the most people are awake and traveling during this time.
+In summary, bike rentals peaks during the 9AM and 5PM hours, the times that most people are commuting to and from work.
+
+## Part B
+```{r 2.2, echo=FALSE}
+bikes |> 
+  group_by(hr, workingday) |>
+  summarize(avg = mean(total), .groups = "drop_last") |>
+  ggplot() + geom_line(aes(x = hr, y=avg)) + labs(title = "Average Bike Rentals per Hour on Working and Non-Working Days", x = "Hour", y = "Bike Rentals") + 
+  facet_wrap(~workingday, labeller = labeller(workingday = c('0'= "Non-Working Day", '1' = "Working Day")))
+```
+When splitting the data, the Working Day graph is similar to the aggregate data graph, but with higher extremes and less people renting bikes during the 9-5 hours. As many people will have already arrived at their workplace, there will be less of an available population to rent bikes. On Non-Working Days, there is instead a gradual increase of bike rentals throughout the day, with the peak occurring between 12-2 PM. Since there is no work on these days, this data instead can be explained as when humans are outdoors and the most active during the day, with the peak likely being a direct result of people biking to eat lunch.
+In summary, the Non-Working Day graph shows a gradual peak of activity at midday, while the Working Day graph has 2 sharp peaks during 9AM and 5PM, the peak hours of commute to and from work.
+
+## Part C
+```{r 2.3, echo=FALSE}
+bikes |> 
+  filter(hr == 9) |>
+  group_by(hr, weathersit, workingday) |>
+  summarize(avg = mean(total), .groups = "drop_last") |>
+  ggplot() + geom_col(aes(x = weathersit, y = avg)) + facet_wrap(~workingday, labeller = labeller(workingday = c('0'= "Non-Working Day", '1' = "Working Day"))) + labs(title = "Average Bikes Rides during the 9AM Hour Sorted By Weather and Working Days", x = "Weather", y = "Amount")
+  
+```
+The two bar graphs demonstrate the average ridership during the 9AM hour based on the weather, with each graph segmented by whether or not the day was a working day. The weather values are numerical from 1-4, with a lower value indicating better and clear weather and the highest values, 3-4, indicating heavy precipitation, strong winds, and/or inclement weather. Observing the Non-Working Day Graph, the number of rentals significantly decreases between each stage of weather, with no recorded cases for the worst weather. For Working Days, there is a very small decrease between good and fair weather, and a significant decrease only when weather includes rain and snow. Since there is a necessity for bike renters to commute during working-days, they will only not rent if the weather directly obstructs their bike rides. Since bike rentals during Non-Working Days are more recreational, the weather plays a bigger factor in if people want to write bikes.
+In summary, poor weather has a higher effect on rentals during Non-Working Days than Working Days since those who rent bikes during off days need them less.
+
+# Problem 3
+
+## Part A
+```{r 3.setup, echo=FALSE}
+metro = mutate(metro,
+day_of_week = factor(day_of_week,
+levels=c("Mon", "Tue", "Wed","Thu", "Fri", "Sat", "Sun")),
+month = factor(month,
+levels=c("Sep", "Oct","Nov")))
+
+```
+
+```{r 3.1, echo=FALSE}
+metro |> 
+  group_by(hour_of_day, day_of_week, month) |>
+  summarize(avg = mean(boarding), .groups = "drop_last") |>
+  ggplot() + geom_line(aes(x = hour_of_day, y=avg, col = month)) + labs(title = "Average Boardings per Day, Hour, and Month", x = "Hour", y = "Boardings") + facet_wrap(~day_of_week)
+```
+Each smaller graph demonstrates the average boardings per hour across each of the 7 days, with each line showing the amount per month. The hour of peak boardings appears to be broadly similar across each day, with t falling around either 3PM or 4PM. Decreased use on Monday of September could be attributed to the start of school, when many students have not yet arrived on campus or apartments and so are more likely to traveling by car or plane. November has markedly less boardings on Wednesday, Thursday, and Friday. As November contains Thanksgiving break, many students will be at home celebrating Thanksgiving, and since Thanksgiving falls on a Thursday, many students will already be off campus by Wednesday and likely stay off campus on Friday, leading to decreased boardings around UT.
+In summary, the university environment of Austin and UT contributes significantly to data trends in the boardings around the city and campus.
+
+## Part B
+```{r 3.2, echo=FALSE}
+metro |> 
+  ##group_by(hour_of_day, day_of_week, month) |>
+  ##summarize(avg = mean(boarding), .groups = "drop_last") |>
+  ggplot() + geom_point(aes(x = temperature, y=boarding, col = weekend)) + facet_wrap(~hour_of_day) + labs(title = "Amount of Boardings by Temperature and per Hour Sorted for Weekends", x = "Temperature (F)", y = "Amount of Boardings")
+```
+Each smaller graph displays the boardings per hour by each Fahrenheit temperature value, sorted by if it was a weekend or weekday. Boardings appear to be much high on weekdays across most hours, with only the early morning hours showing similar numbers. When holding hour of day weekend/weekday constant, there appears to be a very slight correlation between temperature and boardings. In particular, hours 12, 13, 14, and 18 contain the most noticeable correlations.
+
+\newpage
+
+# Problem 4
+
+## Part A
+```{r 4.1, echo=FALSE}
+billboard |>
+  group_by(performer, song) |>
+  summarize(count = n()) |>
+  arrange(desc(count)) |>
+  head(10)
+```
+This table displays the 10 songs that spent the longest on the Billboard Top 100, measured by weeks. Radiocative by Imagine Dragons spent the longest at 87 weeks, or around 1.67 years.
+
+\newpage
+
+## Part B
+```{r 4.2, echo=FALSE}
+billboard |>
+  filter(year > 1958 & year < 2021) |>
+  group_by(performer, song, year) |>
+  summarize(count = n(), .groups = "drop_last") |>
+  arrange(year) |>
+  group_by(year) |>
+  summarize(count = n()) |>
+  ggplot() + geom_line(aes(x = year, y = count)) + labs(title = "Number of Songs Appearing in Top 100 per Year", x = "Year", y = "Count")
+  
+  
+```
+The line graph shows the amount of songs that appeared on the Top 100 in any given year, i.e. any song that spent at least one week on the Top 100 at any point in that year. Uniqueness peaked in the late 1960s, when around 830 songs appeared on the 1966 Top 100. From then until the year 2001, uniqueness decreased, until less than 400 songs appeared on the 2001 Top 100. Since then, there has been a resurgence, with 2020, the last complete year, having just above 800 unique songs, rivaling the peak of the 1960s.
+
+\newpage
+
+## Part C
+```{r 4.3, echo=FALSE}
+billboard |>
+  group_by(performer, song) |>
+  summarize(count = n(), .groups = "drop_last") |>
+  filter(count > 9) |> 
+  group_by(performer) |>
+  summarize(count2 = n(), .groups = "drop_last") |>
+  filter(count2 >= 30) |>
+  arrange(desc(count2)) |>
+  ggplot(aes( fct_rev(fct_reorder(performer, performer)), count2)) + geom_col() + coord_flip() + labs(title = "Artists with 30 or More 10-Week-Hits", x = "Artist", y = "Amount")
+```
+The bar graph displays artists who had at least 30 "10-Week-Hits", or songs that spent at least 10 weeks on the Top 100. There are 19 artists in total who meet such criteria, with Elton John recording the most such songs at a monumental 52 songs.
