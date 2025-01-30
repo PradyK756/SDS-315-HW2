@@ -133,7 +133,8 @@ billboard |>
   group_by(performer, song) |>
   summarize(count = n(), .groups = "drop_last") |>
   arrange(desc(count)) |>
-  head(10)
+  head(10) |>
+  knitr::kable(col.names = c("Performer", "Song", "Count"), caption = "Top 10 Songs by Performer")
 ```
 This table displays the 10 songs that spent the longest on the Billboard Top 100, measured by weeks. Radiocative by Imagine Dragons spent the longest at 87 weeks, or around 1.67 years.
 
